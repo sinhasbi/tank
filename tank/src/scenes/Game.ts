@@ -3,7 +3,7 @@ import Tanks from "../game/Tanks";
 
 export default class Tank extends Phaser.Scene {
   private ground!: MatterJS.Body;
-  private tank!: Phaser.Physics.Matter.Sprite;
+  private tank!: Phaser.Physics.Matter.Image;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 
   constructor() {

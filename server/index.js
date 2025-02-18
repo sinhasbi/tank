@@ -30,6 +30,6 @@ app.get("*", (req, res) => {
 const gameManager = new GameManager(io);
 const socketService = new SocketService(io, gameManager);
 
-server.listen(3000, "0.0.0.0", () => {
-  console.log("伺服器運行於 http://0.0.0.0:3000");
+server.listen(3000, "192.168.1.165", () => {
+  console.log("伺服器運行於 http://192.168.1.165:3000");
 });
