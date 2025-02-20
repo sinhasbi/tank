@@ -7,7 +7,11 @@ class GameManager {
   // 建立房間（單一職責：管理房間的產生）
   createRoom(roomId) {
     if (!this.rooms[roomId]) {
-      this.rooms[roomId] = { players: [], currentPlayer: 0, turnTime: 30 };
+      this.rooms[roomId] = { 
+        players: []
+        // currentPlayer: 0, // 註解回合制相關
+        // turnTime: 30
+      };
     }
   }
 
@@ -17,8 +21,8 @@ class GameManager {
     if (this.rooms[roomId].players.length < 4) {
       // 為新玩家設定初始位置
       const initialPosition = {
-        x: 200 + (this.rooms[roomId].players.length * 200), // 玩家間隔 200 像素
-        y: 300 // 固定高度
+        x: 200 + (this.rooms[roomId].players.length * 200),
+        y: 300
       };
 
       const newPlayer = {
@@ -35,44 +39,13 @@ class GameManager {
       
       // 發送更新給所有玩家
       this.io.to(roomId).emit('updatePlayers', this.rooms[roomId].players);
+      this.io.to(roomId).emit('systemMessage', `玩家 ${playerName} 已加入遊戲`);
       
-      if (this.rooms[roomId].players.length === 4) {
-        this.startGame(roomId);
-      }
+      // if (this.rooms[roomId].players.length === 4) {
+      //   this.startGame(roomId);
+      // }
     } else {
       socket.emit('error', '房間已滿');
-    }
-  }
-
-  // 處理玩家行動
-  handlePlayerAction(roomId, socket, action) {
-    const room = this.rooms[roomId];
-    if (room && room.players[room.currentPlayer].id === socket.id) {
-      if (action.type === 'move') {
-        const player = room.players.find(p => p.id === socket.id);
-        player.position.x += action.distance;
-      } else if (action.type === 'attack') {
-        this.io.to(roomId).emit('attack', { shooterId: socket.id, angle: action.angle, power: action.power });
-        this.nextTurn(roomId);
-      }
-      this.io.to(roomId).emit('updatePlayers', room.players);
-    }
-  }
-
-  // 遊戲開始
-  startGame(roomId) {
-    this.io.to(roomId).emit('startGame');
-    setTimeout(() => this.nextTurn(roomId), 1000);
-  }
-
-  // 換下一位玩家
-  nextTurn(roomId) {
-    const room = this.rooms[roomId];
-    if (room && room.players.length > 0) {
-      room.currentPlayer = (room.currentPlayer + 1) % room.players.length;
-      this.io.to(roomId).emit('nextTurn', { 
-        currentPlayerId: room.players[room.currentPlayer].id 
-      });
     }
   }
 
@@ -92,12 +65,6 @@ class GameManager {
         
         // 更新玩家列表
         this.io.to(roomId).emit('updatePlayers', room.players);
-        
-        // 如果是當前玩家，切換到下一個玩家
-        if (room.players.length > 0 && 
-            room.players[room.currentPlayer]?.id === socket.id) {
-          this.nextTurn(roomId);
-        }
         
         // 如果房間空了，清理房間
         if (room.players.length === 0) {

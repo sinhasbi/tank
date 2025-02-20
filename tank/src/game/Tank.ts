@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-export default class Tanks extends Phaser.Physics.Matter.Image {
+export default class Tank extends Phaser.Physics.Matter.Image {
   private bullet?: Phaser.Physics.Matter.Image;
 
   private launchAngle: number = 45;

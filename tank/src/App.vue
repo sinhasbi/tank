@@ -5,11 +5,21 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, onUnmounted } from "vue";
 import { useGame } from "./game/useGame";
+import SocketService from "./services/SocketService";
 
 onMounted(() => {
+  // 初始化 Socket 服務
+  SocketService.getInstance();
+  // 初始化遊戲
   useGame();
+});
+
+onUnmounted(() => {
+  // 斷開 Socket 連接
+  const socket = SocketService.getInstance().getSocket();
+  socket.disconnect();
 });
 </script>
 
