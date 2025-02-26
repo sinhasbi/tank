@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import Game from "../scenes/Game";
+import SocketService from "../services/SocketService";
 
 export default class Tank extends Phaser.Physics.Matter.Image {
   private bullet?: Phaser.Physics.Matter.Image;
@@ -69,20 +71,26 @@ export default class Tank extends Phaser.Physics.Matter.Image {
   }
 
   private fireBullet() {
-    // 三角函數，將角度轉換為弧度
     const angle = Phaser.Math.DegToRad(this.launchAngle);
     const velocity = {
       x: Math.cos(angle) * this.power * 0.2,
       y: -Math.sin(angle) * this.power * 0.2,
     };
 
-    // TODO 我先安排他在右上角，但他應該要跟砲管在一樣的位置
-    this.bullet = this.scene.matter.add
-      .image(this.x + 20, this.y - 20, "bullet", undefined, {
-        circleRadius: 50,
-      })
-      .setScale(0.25);
-    this.bullet.setVelocity(velocity.x, velocity.y);
+    const position = {
+      x: this.x + 20,
+      y: this.y - 20,
+    };
+
+    // 發送子彈事件到服務器
+    const socketService = SocketService.getInstance();
+    socketService.fireBullet({
+      position: position,
+      velocity: velocity,
+    });
+
+    // 使用場景的 createBullet 方法
+    (this.scene as Game).createBullet(position, velocity);
   }
 
   private updateText() {

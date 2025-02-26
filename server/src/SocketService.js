@@ -39,7 +39,7 @@ class SocketService {
         console.log(`目前剩餘連線人數: ${this.connectedUsers.size}`);
       });
 
-      // 新增：處理位置更新
+      // 處理坦克的位置更新
       socket.on("updatePosition", (position) => {
         // 找到對應的房間和玩家
         for (const roomId in this.gameManager.rooms) {
@@ -51,6 +51,25 @@ class SocketService {
             player.position = position;
             // 廣播更新給房間內所有玩家
             this.io.to(roomId).emit("updatePlayers", room.players);
+            break;
+          }
+        }
+      });
+
+      // 處理子彈發射事件
+      socket.on("fireBullet", (bulletData) => {
+        // 找到玩家所在的房間
+        for (const roomId in this.gameManager.rooms) {
+          const room = this.gameManager.rooms[roomId];
+          const player = room.players.find((p) => p.id === socket.id);
+
+          if (player) {
+            // 將子彈事件廣播給房間內的所有其他玩家
+            this.io.to(roomId).emit("bulletEvent", {
+              playerId: socket.id,
+              position: bulletData.position,
+              velocity: bulletData.velocity,
+            });
             break;
           }
         }

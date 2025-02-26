@@ -9,7 +9,8 @@ export default class Game extends Phaser.Scene {
   private socketService: SocketService;
   private otherPlayers: Map<string, Tank> = new Map(); // 儲存其他玩家 Tank 物件
   private latestPlayers: any[] = []; // 儲存最新的玩家資訊
-  private lastPosition = { x: 0, y: 0 }; // 新增：記錄上一次的位置
+  private lastPosition = { x: 0, y: 0 }; // 記錄上一次的位置
+  private bullets: Phaser.Physics.Matter.Image[] = []; // 儲存所有子彈
 
   constructor() {
     super("Tank");
@@ -29,6 +30,14 @@ export default class Game extends Phaser.Scene {
     this.socketService.getSocket().on("updatePlayers", (players) => {
       // console.log("收到更新的玩家資訊:", players);
       this.latestPlayers = players;
+    });
+
+    // 添加子彈事件監聽
+    this.socketService.getSocket().on("bulletEvent", (bulletData) => {
+      // 確保不重複創建本地玩家發射的子彈
+      if (bulletData.playerId !== this.socketService.getSocket().id) {
+        this.createBullet(bulletData.position, bulletData.velocity);
+      }
     });
 
     // 監聽玩家斷線事件
@@ -111,6 +120,11 @@ export default class Game extends Phaser.Scene {
         }
       });
     }
+
+    // 更新子彈位置（如果需要額外的物理效果）
+    // this.bullets.forEach(bullet => {
+    //   // 可以在這裡添加額外的子彈更新邏輯
+    // });
   }
 
   private removePlayer(playerId: string) {
@@ -119,5 +133,31 @@ export default class Game extends Phaser.Scene {
       player.destroy();
       this.otherPlayers.delete(playerId);
     }
+  }
+
+  // 新增：創建子彈的方法
+  createBullet(
+    position: { x: number; y: number },
+    velocity: { x: number; y: number }
+  ) {
+    const bullet = this.matter.add
+      .image(position.x, position.y, "bullet", undefined, {
+        circleRadius: 50,
+      })
+      .setScale(0.25);
+
+    bullet.setVelocity(velocity.x, velocity.y);
+
+    // 將子彈加入陣列中追蹤
+    this.bullets.push(bullet);
+
+    // 設定子彈在 3 秒後消失
+    // this.time.delayedCall(3000, () => {
+    //   const index = this.bullets.indexOf(bullet);
+    //   if (index > -1) {
+    //     this.bullets.splice(index, 1);
+    //     bullet.destroy();
+    //   }
+    // });
   }
 }

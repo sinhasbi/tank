@@ -49,6 +49,16 @@ class SocketService {
     this.socket.on("error", (error: string) => {
       console.error("Socket 錯誤:", error);
     });
+
+    // 添加子彈發射監聽
+    this.socket.on("bulletFired", (bulletData: {
+      playerId: string;
+      position: { x: number; y: number };
+      velocity: { x: number; y: number };
+    }) => {
+      // 這個事件會在 Game 場景中處理
+      this.socket.emit("bulletEvent", bulletData);
+    });
   }
 
   public static getInstance(): SocketService {
@@ -72,11 +82,10 @@ class SocketService {
     this.socket.emit("updatePosition", position);
   }
 
-  // 新增：發送子彈發射事件
+  // 修改發送子彈發射事件方法
   public fireBullet(bulletData: {
     position: { x: number; y: number };
     velocity: { x: number; y: number };
-    angle: number;
   }) {
     this.socket.emit("fireBullet", bulletData);
   }
